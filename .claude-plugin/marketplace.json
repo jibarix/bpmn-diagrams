@@ -1,0 +1,12 @@
+{
+  "name": "jibarix-bpmn-diagrams",
+  "description": "The bpmn-diagrams skill for Claude Code",
+  "owner": { "name": "J. A. Arroyo" },
+  "plugins": [
+    {
+      "name": "bpmn-diagrams",
+      "source": "./",
+      "description": "Process diagrams for agentic systems in a small BPMN 2.0 subset (TikZ)"
+    }
+  ]
+}

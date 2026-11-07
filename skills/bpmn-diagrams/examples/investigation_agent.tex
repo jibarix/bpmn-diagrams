@@ -1,0 +1,55 @@
+% Example 2: an investigation agent that finds each company's owner. Code resolves clean matches, stops the search when the budget is spent and applies the outcome rule, whose test for verified is in an annotation; the model chooses where to look next only when the registry gives no clean match; a person reviews every outcome that is not verified.
+% Worked example from the bpmn-diagrams skill. It shows the form only: do not copy its steps,
+% objects or values into a diagram whose sources do not state them.
+% Compile from this folder: pdflatex investigation_agent.tex
+\documentclass[border=0pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,backgrounds,calc,shapes.geometric}
+\input{../assets/bpmn_tikz.tex}
+\begin{document}
+\begin{tikzpicture}[dp, card/.style={box, text width=1.85cm, minimum height=0.9cm}]
+\exlanes
+\node[bpev] (s) at (2.55,1.45) {};
+\node[bpq, anchor=north] at ([yshift=-1pt]s.south) {list\\received};
+\node[card, text width=1.5cm] (c1) at (3.8,1.45) {Registry lookup and matching rules};
+\node[bpgw] (g1) at (5.2,1.45) {};
+\node[bpq, anchor=south west, align=left] at ([xshift=1pt]g1.north east) {clean\\match?};
+\node[card, focal] (m1) at (6.45,2.9) {Read the records so far; propose the next source};
+\node[bpgw] (g2) at (6.45,1.45) {};
+\node[bpq, anchor=north east, align=right] at ([xshift=-1pt]g2.south west) {budget\\left?};
+\node[card, text width=1.5cm] (c2) at (7.95,1.45) {Run the search; record source and date};
+\node[card, text width=1.3cm] (m2) at (9.0,2.9) {Read the evidence};
+\node[bpgw] (gm) at (10.2,2.9) {};
+\node[bpq, anchor=west, align=left] at ([xshift=2pt]gm.east) {search again\\or stop?};
+\node[card, text width=1.6cm] (c3) at (10.2,1.45) {Apply the outcome rule; record source and date};
+\node[bpgw] (g3) at (11.65,1.45) {};
+\node[bpq, anchor=south] at ([yshift=1pt]g3.north) {verified?};
+\node[bpnote, anchor=north west] (n1) at (12.35,2.08) {verified: two independent primary\\sources agree on entity, owner\\definition and date; a source that\\repeats another does not count};
+\node[card, text width=1.65cm] (h2) at (11.65,-0.45) {Requester gets verified owners with sources};
+\node[bpend] (e1) at (13.2,-0.45) {};
+\node[bpq, anchor=south] at ([yshift=1pt]e1.north) {delivered};
+\node[card, text width=1.2cm] (h1) at (14.4,-0.45) {Person reviews the rest};
+\node[bpend] (e3) at (15.7,-0.45) {};
+\node[bpq, anchor=south] at ([yshift=1pt]e3.north) {reviewed};
+\draw[flow] (s) -- (c1);
+\draw[flow] (c1) -- (g1);
+\draw[flow] (g1.north) |- node[lab, pos=0.4, left, align=right] {no: conflict\\or no record} (m1.west);
+\draw[flow] (m1) -- (g2);
+\draw[flow] (g2) -- node[lab, above] {yes} (c2);
+\draw[flow] (c2.north) |- (m2.west);
+\draw[flow] (m2) -- (gm);
+\draw[flow] (gm.north) -- ++(0,0.3) -| node[lab, pos=0.25, above] {search again} (m1.north);
+\draw[flow] (gm) -- node[lab, right] {stop} (c3);
+\draw[flow] (g2.south) -- (6.45,0.78) -- node[lab, pos=0.4, below] {no: budget spent} (9.7,0.78) -- ([xshift=-0.5cm]c3.south);
+\draw[flow] (g1.south) -- node[lab, pos=0.45, right] {yes} (5.2,0.45) -- (10.7,0.45) -- ([xshift=0.5cm]c3.south);
+\draw[flow] (c3) -- (g3);
+\draw[flow] (g3) -- node[lab, pos=0.4, right] {yes} (h2);
+\draw[flow] (h2) -- (e1);
+\draw[flow] (g3.east) -- ++(0.2,0) |- node[lab, pos=0.75, above] {no} (14.4,0.75) -- (h1);
+\draw[bpassoc] (g3.north east) -- (n1.west);
+\draw[flow] (h1) -- (e3);
+\exlegend{legbox}{}
+\end{tikzpicture}
+\end{document}

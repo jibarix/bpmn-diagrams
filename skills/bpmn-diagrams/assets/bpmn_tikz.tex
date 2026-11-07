@@ -1,0 +1,107 @@
+% BPMN subset in the house diagram style (skill: bpmn-diagrams, https://github.com/jibarix/bpmn-diagrams).
+% Needs: \usepackage{tikz}, \usetikzlibrary{arrows.meta,backgrounds,calc,shapes.geometric},
+% and \usepackage[T1]{fontenc} for the zi4 (Inconsolata) font in \dpmono. \dpmono needs the inconsolata
+% package installed (TeX Live and MiKTeX include it) but no \usepackage line.
+% Skip the colour and dp block if the document already has it.
+
+% House style: pale panel, white boxes, small monospace tags, one coral accent.
+\definecolor{dpbg}{HTML}{F3F4F6}
+\definecolor{dpline}{HTML}{C3C8CF}
+\definecolor{dpink}{HTML}{2B2F36}
+\definecolor{dpmute}{HTML}{6B7280}
+\definecolor{dpcoral}{HTML}{E2683C}
+\definecolor{dpcoralbg}{HTML}{FBE4DA}
+\newcommand{\dpmono}{\fontfamily{zi4}\selectfont}
+\newcommand{\dptag}[1]{{\dpmono\tiny\color{dpmute}\MakeUppercase{#1}}}
+\tikzset{
+  dp/.style={font=\sffamily\scriptsize, color=dpink, >={Stealth[length=4pt,width=3.5pt]},
+    show background rectangle, inner frame xsep=10pt, inner frame ysep=8pt,
+    background rectangle/.style={fill=dpbg, draw=none},
+    every node/.append style={execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}}},
+  box/.style={draw=dpline, fill=white, line width=0.5pt, rounded corners=1.5pt, align=center, inner sep=4pt},
+  focal/.style={box, draw=dpcoral, fill=dpcoralbg},
+  flow/.style={->, draw=dpink, line width=0.6pt},
+  lab/.style={font=\dpmono\tiny, text=dpmute, inner sep=1.5pt},
+}
+
+% BPMN subset. Circles are events, boxes are tasks, diamonds are decisions;
+% the lane says who acts or decides.
+\tikzset{
+  bpev/.style={circle, draw=dpink, fill=white, line width=0.6pt, minimum size=0.42cm, inner sep=0pt},
+  bpend/.style={bpev, line width=1.6pt, minimum size=0.36cm},
+  bptimer/.style={bpev, path picture={\draw[dpink, line width=0.4pt]
+    (path picture bounding box.center) circle (0.12cm) ++(0,0.09) -- (path picture bounding box.center) -- ++(0.07,0);}},
+  bpmessage/.style={bpev, path picture={\draw[dpink, line width=0.4pt]
+    ([shift={(-0.11,-0.07)}]path picture bounding box.center) rectangle ([shift={(0.11,0.07)}]path picture bounding box.center)
+    ([shift={(-0.11,0.07)}]path picture bounding box.center) -- ([shift={(0,-0.01)}]path picture bounding box.center)
+    -- ([shift={(0.11,0.07)}]path picture bounding box.center);}},
+  bpx/.style={path picture={\draw[#1, line width=0.8pt]
+    ([shift={(-0.08,-0.08)}]path picture bounding box.center) -- ([shift={(0.08,0.08)}]path picture bounding box.center)
+    ([shift={(-0.08,0.08)}]path picture bounding box.center) -- ([shift={(0.08,-0.08)}]path picture bounding box.center);}},
+  bpgw/.style={diamond, draw=dpink, fill=white, line width=0.6pt, minimum size=0.62cm, inner sep=0pt, bpx=dpink},
+  bpopen/.style={bpgw, draw=dpcoral, fill=dpcoralbg, bpx=dpcoral},
+  bpstore/.style={cylinder, shape border rotate=90, aspect=0.6, draw=dpink, fill=white, line width=0.6pt,
+    minimum width=0.7cm, minimum height=0.55cm, inner sep=1pt},
+  % data association: dotted, open line arrowhead (BPMN 2.0.2, 8.4.3)
+  bpdata/.style={-{Straight Barb[length=3pt,width=4pt]}, draw=dpmute, dotted, line width=0.7pt},
+  bpq/.style={lab, align=center},
+  % coral shapes for the legend: legbox when the open decision is a task, legopen when it is a gateway
+  legbox/.style={focal, minimum width=0.45cm, minimum height=0.22cm, inner sep=0pt},
+  legopen/.style={bpopen, minimum size=0.42cm},
+  % text annotation joined by a dotted association; marks where the sources are silent
+  bpnote/.style={lab, align=left, inner sep=2.5pt, path picture={\draw[dpmute, line width=1pt]
+    ([xshift=3pt]path picture bounding box.north west) -- (path picture bounding box.north west)
+    -- (path picture bounding box.south west) -- ([xshift=3pt]path picture bounding box.south west);}},
+  bpassoc/.style={draw=dpmute, dotted, line width=0.6pt},
+  % message flow between pools only (not used in the examples)
+  bpmsg/.style={{Circle[open,length=3pt]}-{Triangle[open,length=4.5pt,width=4.5pt]}, draw=dpink, dashed, line width=0.6pt},
+}
+
+% Lanes: model (y 2.2-3.6, shapes on 2.9), code (0.3-2.15; shapes on 1.45, return and
+% bypass paths along y 0.45-0.8), human (-1.15-0.25; shapes on -0.45). Labels end at x = 2.1,
+% so start the first shape at about x = 2.55. The lanes are 16.2cm wide before the
+% background padding: check the picture against \linewidth of the target document and
+% scale or narrow it if needed.
+% Adapt it: drop a lane nobody acts in (rule 1) by removing its entry from the list and
+% moving the divider's bottom end.
+\newcommand{\exlanes}{%
+  \foreach \yb/\yt/\t/\s in {2.2/3.6/MODEL/{chooses the next step}, 0.3/2.15/{CODE (RUNTIME)}/{rules, limits, tools}, -1.15/0.25/HUMAN/{approval, review}} {
+    \draw[dpline, line width=0.5pt, fill=white!60!dpbg] (0,\yb) rectangle (16.2,\yt);
+    \node[anchor=west, align=left, text width=1.9cm] at (0.1,{(\yb+\yt)/2}) {\dptag{\t}\\[2pt]{\color{dpmute}\s}};
+  }
+  \draw[dpline, line width=0.5pt] (2.1,-1.15) -- (2.1,3.6);}
+% Legend below the lanes. #1 is legbox or legopen (the coral shape the diagram uses);
+% #2 adds items (timer, message, data) from x = 13.9 onwards. Remove any built-in item
+% the diagram does not use.
+\newcommand{\exlegend}[2]{%
+  \begin{scope}[yshift=-1.6cm]
+  \node[lab, anchor=west] at (0,0) {LEGEND};
+  \node[bpev, minimum size=0.3cm] at (1.35,0) {};
+  \node[bpend, minimum size=0.26cm] at (1.75,0) {};
+  \node[lab, anchor=west] at (1.95,0) {start, end};
+  \node[bpgw, minimum size=0.42cm] at (3.55,0) {};
+  \node[lab, anchor=west] at (3.8,0) {decision, taken in its lane};
+  \draw[flow] (6.75,0) -- ++(0.5,0) node[lab, right] {sequence};
+  \node[#1] at (8.85,0) {};
+  \node[lab, anchor=west] at (9.15,0) {the decision the fixed workflow leaves open};
+  #2
+  \end{scope}}
+
+% Fragment: a code-lane cap around a model choice. A full diagram also needs the model's own
+% stop path and an acceptance check in the code or human lane (see the examples/ folder).
+% \begin{tikzpicture}[dp, card/.style={box, text width=1.85cm, minimum height=0.9cm}]
+% \exlanes
+% \node[bpev] (s) at (2.55,1.45) {};
+% \node[card, focal] (m) at (4.5,2.9) {Choose the next step};
+% \node[bpgw] (g) at (6.5,1.45) {};
+% \node[bpq, anchor=south east] at ([xshift=-1pt]g.north west) {budget\\left?};
+% \node[card] (c) at (8.5,1.45) {Run the tool};
+% \node[bpend] (e) at (10.6,1.45) {};
+% \node[bpq, anchor=south] at ([yshift=1pt]e.north) {budget\\spent};
+% \draw[flow] (s) |- (m.west);
+% \draw[flow] (m.south) |- (g.west);
+% \draw[flow] (g) -- node[lab, above] {yes} (c);
+% \draw[flow] (g.south) -- (6.5,0.7) -- node[lab, below] {no} (10.6,0.7) -- (e.south);
+% \draw[flow] (c.north) |- ([yshift=0.15cm]m.north) -- (m.north);
+% \exlegend{legbox}{}
+% \end{tikzpicture}

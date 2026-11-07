@@ -1,0 +1,62 @@
+% Example 3: a weekly planning run. The agent sits inside one step of a fixed weekly workflow and chooses the next analysis; a person approves the slate and then each draft. Results mature weeks later and reach later runs through a data store. Code checks the two caps, on queries and on spend per run, one gateway each. Three branches the sources leave open carry gap annotations.
+% Worked example from the bpmn-diagrams skill. It shows the form only: do not copy its steps,
+% objects or values into a diagram whose sources do not state them.
+% Compile from this folder: pdflatex weekly_planning.tex
+\documentclass[border=0pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,backgrounds,calc,shapes.geometric}
+\input{../assets/bpmn_tikz.tex}
+\begin{document}
+\begin{tikzpicture}[dp, card/.style={box, text width=1.85cm, minimum height=0.9cm}]
+\exlanes
+\node[bpev, bptimer] (s) at (2.45,1.45) {};
+\node[bpq, anchor=north] at ([yshift=-1pt]s.south) {weekly};
+\node[card, text width=1.3cm] (c1) at (3.65,1.45) {Build the standard analysis pack};
+\node[bpstore] (db) at (3.65,-0.45) {};
+\node[bpq, anchor=west, align=left] at ([xshift=3pt]db.east) {performance data:\\results of published\\items, weeks later};
+\node[card, focal, text width=2.9cm] (m1) at (5.45,2.9) {Choose the next analysis: metric cut, transcripts or competitor ads};
+\node[bpgw] (g1) at (5.6,1.45) {};
+\node[bpq, anchor=east, align=right] at ([xshift=-1pt]g1.west) {queries\\left this\\run?};
+\node[bpnote, anchor=east] (n1) at (5.45,0.55) {no: next step not\\stated in sources};
+\node[bpgw] (g4) at (6.55,1.45) {};
+\node[bpq, anchor=south, inner sep=0pt] at ([yshift=1pt]g4.north) {spend left\\this run?};
+\node[bpnote, anchor=west] (n3) at (6.75,0.55) {no: next step not\\stated in sources};
+\node[card, text width=1.3cm] (c2) at (8.0,1.45) {Run the query; return results};
+\node[card, text width=1.0cm] (m2) at (8.0,2.9) {Read the results};
+\node[bpgw] (gm) at (9.15,2.9) {};
+\node[bpq, anchor=north west, align=left] at ([xshift=1pt]gm.south east) {analyse\\further?};
+\node[card, text width=1.0cm] (m3) at (10.85,2.9) {Propose the slate};
+\node[card, text width=1.0cm] (h1) at (11.7,-0.45) {Approve or edit the slate};
+\node[card, text width=1.0cm] (c3) at (12.55,1.45) {Draft each item};
+\node[card, text width=1.0cm] (h2) at (13.4,-0.45) {Approve each draft};
+\node[bpgw] (gh) at (14.5,-0.45) {};
+\node[bpq, anchor=north] at ([yshift=-1pt]gh.south) {approved?};
+\node[card, text width=1.0cm] (c4) at (14.5,1.45) {Publish the approved draft};
+\node[bpend] (e1) at (15.65,1.45) {};
+\node[bpq, anchor=south] at ([yshift=1pt]e1.north) {published};
+\node[bpnote, anchor=west] (n2) at (15.0,-0.45) {no: next\\step not\\stated in\\sources};
+\draw[flow] (s) -- (c1);
+\draw[bpdata] (db.north) -- (c1.south);
+\draw[flow] (c1.north) |- (m1.west);
+\draw[flow] (m1.south -| g1) -- (g1);
+\draw[flow] (g1) -- node[lab, below] {yes} (g4);
+\draw[flow] (g4) -- node[lab, below] {yes} (c2);
+\draw[flow] (c2) -- (m2);
+\draw[flow] (m2) -- (gm);
+\draw[flow] (gm.north) -- ++(0,0.65) -| node[lab, pos=0.25, above] {yes} (m1.north);
+\draw[flow] (gm) -- node[lab, above] {no} (m3);
+\draw[bpassoc] (g1.south) |- (n1.east);
+\draw[bpassoc] (g4.south) |- (n3.west);
+\draw[flow] (m3.east) -| (h1.north);
+\draw[flow] (h1.east) -| (c3.south);
+\draw[flow] (c3.east) -| (h2.north);
+\draw[flow] (h2) -- (gh);
+\draw[flow] (gh) -- node[lab, pos=0.6, left] {yes} (c4);
+\draw[bpassoc] (gh) -- (n2);
+\draw[flow] (c4) -- (e1);
+\exlegend{legbox}{\node[bpev, bptimer, minimum size=0.3cm] at (13.95,0) {}; \node[lab, anchor=west] at (14.15,0) {timer};
+  \draw[bpdata] (14.85,0) -- ++(0.45,0) node[lab, right] {data};}
+\end{tikzpicture}
+\end{document}

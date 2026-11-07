@@ -1,0 +1,9 @@
+{
+  "name": "bpmn-diagrams",
+  "version": "1.0.0",
+  "description": "Process diagrams for agentic systems in a small BPMN 2.0 subset (TikZ): lanes for the model, the code and the person, so the diagram shows who decides each step and where every cap is enforced.",
+  "author": { "name": "J. A. Arroyo", "url": "https://sensadvisor.com" },
+  "repository": "https://github.com/jibarix/bpmn-diagrams",
+  "license": "MIT",
+  "keywords": ["bpmn", "tikz", "latex", "diagrams", "agents", "workflow"]
+}
